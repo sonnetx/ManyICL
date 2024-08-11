@@ -44,7 +44,7 @@ def work(
         api = GPT4VAPI(model=model, detail=detail)
     else:
         assert model == "Gemini1.5"
-        api = GeminiAPI(location=location)
+        api = GeminiAPI()
     print(EXP_NAME, f"test size = {len(test_df)}")
 
     # Prepare the demonstrating examples
@@ -56,6 +56,7 @@ def work(
                 break
             demo_examples.append((j.Index, class_desp[class_to_idx[class_name]]))
             num_cases_class += 1
+    # print(len(demo_examples), num_shot_per_class * len(classes))
     assert len(demo_examples) == num_shot_per_class * len(classes)
 
     # Load existing results

@@ -1,7 +1,3 @@
-# Placeholders
-openai_api_key = "YOUR_OPENAI_API_KEY_HERE"
-gcp_project_id = "YOUR_GCP_PROJECT_ID_HERE"
-
 import base64
 import time
 import pickle
@@ -12,13 +8,14 @@ from tqdm import tqdm
 import traceback
 import random
 from PIL import Image
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 from openai import OpenAI
-
-import vertexai
-from vertexai.generative_models import GenerativeModel, Part, FinishReason
-import vertexai.preview.generative_models as generative_models
-
+import google.generativeai as genai
+genai.configure(api_key=os.getenv('GOOGLE_API_KEY'))
 
 class GPT4VAPI:
     def __init__(
@@ -44,7 +41,7 @@ class GPT4VAPI:
         self.seed = seed
         self.temperature = temperature
         self.detail = detail
-        self.client = OpenAI(api_key=openai_api_key)
+        self.client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
         self.token_usage = (0, 0, 0)
         self.response_times = []
 
@@ -127,11 +124,11 @@ class GPT4VAPI:
 class GeminiAPI:
     def __init__(
         self,
-        model="gemini-1.5-pro-preview-0409",
+        model="gemini-1.5-flash",
         img_token="<<IMG>>",
         RPM=5,
         temperature=0,
-        location="us-central1",
+        system_instruction="You are a smart and helpful assistant"
     ):
         """
         Class for API calls to Gemini-series models
@@ -140,36 +137,41 @@ class GeminiAPI:
         img_token[str]: string to be replaced with images
         RPM[int]: quota for maximum number of requests per minute
         temperature[int]: temperature for generation
-        location[str]: Vertex AI location e.g. "us-central1","us-west1"
+        system_instruction[str]: System prompt for model e.g. "You are an expert dermatologist"
         """
-
         self.model = model
         self.img_token = img_token
         self.temperature = temperature
-        vertexai.init(project=gcp_project_id, location=location)
-        self.client = GenerativeModel(model)
+        self.client = genai.GenerativeModel(model_name=self.model, system_instruction=system_instruction)
 
-        self.safety_settings = {
-            generative_models.HarmCategory.HARM_CATEGORY_HATE_SPEECH: generative_models.HarmBlockThreshold.BLOCK_ONLY_HIGH,
-            generative_models.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: generative_models.HarmBlockThreshold.BLOCK_ONLY_HIGH,
-            generative_models.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: generative_models.HarmBlockThreshold.BLOCK_ONLY_HIGH,
-            generative_models.HarmCategory.HARM_CATEGORY_HARASSMENT: generative_models.HarmBlockThreshold.BLOCK_ONLY_HIGH,
-        }
+        # self.safety_settings = {
+        #     generative_models.HarmCategory.HARM_CATEGORY_HATE_SPEECH: generative_models.HarmBlockThreshold.BLOCK_ONLY_HIGH,
+        #     generative_models.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: generative_models.HarmBlockThreshold.BLOCK_ONLY_HIGH,
+        #     generative_models.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: generative_models.HarmBlockThreshold.BLOCK_ONLY_HIGH,
+        #     generative_models.HarmCategory.HARM_CATEGORY_HARASSMENT: generative_models.HarmBlockThreshold.BLOCK_ONLY_HIGH,
+        # }
+        self.safety_settings = [
+                {"category": "HARM_CATEGORY_DANGEROUS", "threshold": "BLOCK_NONE"},
+                {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+                {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+                {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+                {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
+            ]
         self.token_usage = (0, 0, 0)
 
         self.response_times = []
         self.last_time = None
         self.interval = 0.5 + 60 / RPM
 
-    def generate_image_url(self, image_path):
-        # Given an image_path, return a dict
-        # Function to encode the image
-        def encode_image(image_path):
-            with open(image_path, "rb") as image_file:
-                return base64.b64encode(image_file.read()).decode("utf-8")
+    # def generate_image_url(self, image_path):
+    #     # Given an image_path, return a dict
+    #     # Function to encode the image
+    #     def encode_image(image_path):
+    #         with open(image_path, "rb") as image_file:
+    #             return base64.b64encode(image_file.read()).decode("utf-8")
 
-        image1 = Part.from_data(mime_type="image/jpeg", data=encode_image(image_path))
-        return image1
+    #     image1 = Part.from_data(mime_type="image/jpeg", data=encode_image(image_path))
+    #     return image1
 
     def __call__(
         self, prompt, image_paths=[], real_call=True, max_tokens=50, content_only=True
@@ -195,7 +197,9 @@ class GeminiAPI:
         else:
             messages = []
         for idx in range(1, len(prompt)):
-            messages.append(self.generate_image_url(image_paths[idx - 1]))
+            img = Image.open(image_paths[idx - 1])
+            messages.append(img)
+            # messages.append(self.generate_image_url(image_paths[idx - 1]))
             if prompt[idx].strip() != "":
                 messages.append(prompt[idx])
         if not real_call:
@@ -205,12 +209,12 @@ class GeminiAPI:
         self.last_time = start_time
         responses = self.client.generate_content(
             messages,
-            generation_config={
-                "max_output_tokens": min(max_tokens, 8192),
-                "temperature": self.temperature,
-            },
-            safety_settings=self.safety_settings,
-            stream=False,
+            # generation_config={
+            #     "max_output_tokens": min(max_tokens, 8192),
+            #     "temperature": self.temperature,
+            # },
+            # safety_settings=self.safety_settings,
+            # stream=False,
         )
 
         end_time = time.time()

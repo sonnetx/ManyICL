@@ -9,7 +9,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--dataset",
         type=str,
-        required=True,
+        required=False,
         default="UCMerced",
         help="The dataset to use",
     )
@@ -30,7 +30,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--num_shot_per_class",
         type=int,
-        required=True,
+        required=False,
+        default=1,
         help="The number of shots per class",
     )
     parser.add_argument(
