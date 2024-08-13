@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 
-def generate_ddi_splits(data_path, test_size=0.2, random_state=42):
+def generate_ddi_splits(data_path, test_size=0.5, random_state=42):
     # Load the dataset
     df = pd.read_csv(data_path)
     
