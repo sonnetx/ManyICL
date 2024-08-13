@@ -60,5 +60,10 @@ data_path = '/home/groups/roxanad/ddi/ddi_metadata.csv'
 demo_df, test_df = generate_ddi_splits(data_path)
 
 # Save the splits
+<<<<<<< HEAD
 demo_df.to_csv('ddi_train.csv', index=False)
 test_df.to_csv('ddi_test.csv', index=False)
+=======
+train_df.to_csv('ddi_train.csv', index=False)
+test_df.to_csv('ddi_test.csv', index=False)
+>>>>>>> 0bd2fafa1fd193d1a105309a381c0706437c9411
