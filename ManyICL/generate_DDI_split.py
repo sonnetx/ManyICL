@@ -7,17 +7,13 @@ def generate_ddi_splits(data_path, test_size=0.5, random_state=42):
     df = pd.read_csv(data_path)
     
     # Create slices for FST I/II and FST V/VI
-    fst_12 = df[df['skin_tone'] == '12']
-    fst_56 = df[df['skin_tone'] == '56']
+    fst_12 = df[df['skin_tone'] == 12]
+    fst_56 = df[df['skin_tone'] == 56]
     
     def split_by_patient(df_slice, test_size):
-        unique_patients = df_slice['DDI_file'].unique()
-        train_patients, test_patients = train_test_split(unique_patients, test_size=test_size, random_state=random_state)
-        
-        demo_df = df_slice[df_slice['DDI_file'].isin(train_patients)]
-        test_df = df_slice[df_slice['DDI_file'].isin(test_patients)]
-        
-        return demo_df, test_df
+        train_patients, test_patients = train_test_split(df_slice, test_size=test_size, random_state=random_state)
+
+        return train_patients, test_patients
     
     # Split each slice
     train_12, test_12 = split_by_patient(fst_12, test_size)
@@ -45,9 +41,9 @@ def generate_ddi_splits(data_path, test_size=0.5, random_state=42):
     
     # Create new DataFrames with desired structure
     def create_output_df(df):
-        output_df = pd.DataFrame(index=df['file_name'])
-        output_df['benign'] = (df['malignant'] == 0).astype(int)
-        output_df['malignant'] = df['malignant']
+        output_df = df[['DDI_file', 'malignant']]
+        output_df['benign'] = (~output_df['malignant']).astype(int)
+        output_df['malignant'] = output_df['malignant'].astype(int)
         return output_df
     
     demo_output = create_output_df(demo_df)
@@ -60,5 +56,5 @@ data_path = '/home/groups/roxanad/ddi/ddi_metadata.csv'
 demo_df, test_df = generate_ddi_splits(data_path)
 
 # Save the splits
-demo_df.to_csv('ddi_demo.csv', index=False)
-test_df.to_csv('ddi_test.csv', index=False)
+demo_df.to_csv('/home/groups/roxanad/sonnet/icl/ManyICL/ManyICL/dataset/DDI/ddi_demo.csv')
+test_df.to_csv('/home/groups/roxanad/sonnet/icl/ManyICL/ManyICL/dataset/DDI/ddi_test.csv')

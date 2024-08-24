@@ -20,7 +20,7 @@ genai.configure(api_key=os.getenv('GOOGLE_API_KEY'))
 class GPT4VAPI:
     def __init__(
         self,
-        model="gpt-4o-2024-05-13",
+        model="gpt-4o",
         img_token="<<IMG>>",
         seed=66,
         temperature=0,
@@ -29,7 +29,7 @@ class GPT4VAPI:
         """
         Class for API calls to GPT-series models
 
-        model[str]: the specific model checkpoint to use e.g. "gpt-4-turbo-2024-04-09"
+        model[str]: the specific model checkpoint to use e.g. "gpt-4o"
         img_token[str]: string to be replaced with images
         seed[int]: seed for generation
         temperature[int]: temperature for generation
