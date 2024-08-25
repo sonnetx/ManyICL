@@ -57,8 +57,8 @@ if __name__ == "__main__":
     IMAGE_FOLDER = "/home/groups/roxanad/ddi/"
 
     # Read the two dataframes for the dataset
-    demo_df = pd.read_csv(f"./ManyICL/dataset/{dataset_name}/demo.csv", index_col=0)
-    test_df = pd.read_csv(f"./ManyICL/dataset/{dataset_name}/test.csv", index_col=0)
+    demo_df = pd.read_csv(f"/home/groups/roxanad/sonnet/icl/ManyICL/ManyICL/dataset/{dataset_name}/demo.csv", index_col=0)
+    test_df = pd.read_csv(f"/home/groups/roxanad/sonnet/icl/ManyICL/ManyICL/dataset/{dataset_name}/test.csv", index_col=0)
 
     classes = list(demo_df.columns)  # classes for classification
     class_desp = classes  # The actual list of options given to the model. If the column names are informative enough, we can just use them.

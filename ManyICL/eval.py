@@ -58,11 +58,17 @@ def cal_metrics(
     results = convert_pkl(
         results
     )  # Convert the batched results into individual answers
-
+    # df.to_csv('file1.csv')
+    print(results)
     test_df = test_df[classes]
+    test_df['malignant'] = test_df['malignant'].apply(pd.to_numeric, errors='coerce')
+    test_df['benign'] = test_df['benign'].apply(pd.to_numeric, errors='coerce')
+    test_df.set_index('DDI_file')
+    # print(test_df) # this is the ground truth df
 
-    category_labels = test_df.idxmax(axis=1)
+    category_labels = test_df.columns
     index_labels = category_labels.map(class_to_idx)
+    # print('index_labels', index_labels) # index_labels Index([0, 1, 2], dtype='int64')
 
     num_errors = 0
     labels, preds = [], []
@@ -81,8 +87,16 @@ def cal_metrics(
                     pred_idx = idx
                 else:
                     pred_idx = -1  # Multiple predictions found
+        # print(i) # Pandas(Index=392, DDI_file='000393.png', malignant=0, benign=1)
         if pred_idx >= 0:
-            labels.append(index_labels.loc[i.Index])
+            print(pred_idx)
+            field_with_one = [field_name for field_name, field_value in i._asdict().items() if field_value == 1][0]
+            # labels.append(index_labels.loc[i.Index])
+            print(field_with_one)
+            if field_with_one == "benign":
+                labels.append(2)
+            else:
+                labels.append(1)
             preds.append(pred_idx)
         else:
             if show_error:
@@ -110,8 +124,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--dataset",
         type=str,
-        required=True,
-        default="UCMerced",
+        required=False,
+        default="DDI",
         help="The dataset to use",
     )
     parser.add_argument(
@@ -131,7 +145,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--num_shot_per_class",
         type=int,
-        required=True,
+        required=False,
+        default=0,
         help="The number of shots per class",
     )
     parser.add_argument(
@@ -153,8 +168,8 @@ if __name__ == "__main__":
     num_qns_per_round = args.num_qns_per_round
 
     # Read the two dataframes for the dataset
-    demo_df = pd.read_csv(f"ManyICL/dataset/{dataset_name}/demo.csv", index_col=0)
-    test_df = pd.read_csv(f"ManyICL/dataset/{dataset_name}/test.csv", index_col=0)
+    demo_df = pd.read_csv(f"/home/groups/roxanad/sonnet/icl/ManyICL/ManyICL/dataset/{dataset_name}/demo.csv", index_col=0)
+    test_df = pd.read_csv(f"/home/groups/roxanad/sonnet/icl/ManyICL/ManyICL/dataset/{dataset_name}/test.csv", index_col=0)
 
     classes = list(demo_df.columns)  # classes for classification
     class_desp = classes  # The actual list of options given to the model. If the column names are informative enough, we can just use them.

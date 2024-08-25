@@ -4,8 +4,28 @@ from tqdm import tqdm
 import random
 import pickle
 import numpy as np
+import csv
 from LMM import GPT4VAPI, GeminiAPI
 
+def save_results_to_csv(results, csv_filename):
+    """
+    Save results dictionary to a CSV file.
+    """
+    with open(csv_filename, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(['Question ID', 'Response'])
+        for qns_id, response in results.items():
+            if qns_id != 'token_usage':
+                writer.writerow([qns_id, response])
+
+def pickle_to_csv(pickle_filename, csv_filename):
+    """
+    Parse an existing pickle file and save its contents to a CSV file.
+    """
+    with open(pickle_filename, 'rb') as f:
+        results = pickle.load(f)
+    
+    save_results_to_csv(results, csv_filename)
 
 def work(
     model,
@@ -83,8 +103,9 @@ Answer Choice: {demo[1]}
 """
         qns_idx = []
         for idx, i in enumerate(test_df.iloc[start_idx:end_idx].itertuples()):
+            print(idx, i)
             qns_idx.append(i.Index)
-            image_paths.append(os.path.join(SAVE_FOLDER, i.Index + file_suffix))
+            image_paths.append(os.path.join(SAVE_FOLDER, i.DDI_file + file_suffix))
             qn_idx = idx + 1
 
             prompt += f"""<<IMG>>Given the image above, answer the following question using the specified format. 
@@ -140,5 +161,14 @@ Do not deviate from the above format. Repeat the format template for the answer.
     previous_usage = results.get("token_usage", (0, 0, 0))
     total_usage = tuple(a + b for a, b in zip(previous_usage, api.token_usage))
     results["token_usage"] = total_usage
-    with open(f"{EXP_NAME}.pkl", "wb") as f:
+
+    # Save results to pickle file
+    pickle_filename = f"{EXP_NAME}.pkl"
+    with open(pickle_filename, "wb") as f:
         pickle.dump(results, f)
+
+    # Save results to CSV file
+    csv_filename = f"{EXP_NAME}.csv"
+    save_results_to_csv(results, csv_filename)
+
+    print(f"Results saved to {pickle_filename} and {csv_filename}")
