@@ -60,7 +60,7 @@ def cal_metrics(
     )  # Convert the batched results into individual answers
     # df.to_csv('file1.csv')
     print(results)
-    test_df = test_df[classes]
+    # test_df = test_df[classes]
     test_df['malignant'] = test_df['malignant'].apply(pd.to_numeric, errors='coerce')
     test_df['benign'] = test_df['benign'].apply(pd.to_numeric, errors='coerce')
     test_df.set_index('DDI_file')
@@ -172,8 +172,8 @@ if __name__ == "__main__":
     test_df = pd.read_csv(f"/home/groups/roxanad/sonnet/icl/ManyICL/ManyICL/dataset/{dataset_name}/test.csv", index_col=0)
 
     classes = list(demo_df.columns)  # classes for classification
-    class_desp = classes  # The actual list of options given to the model. If the column names are informative enough, we can just use them.
-    class_to_idx = {class_name: idx for idx, class_name in enumerate(classes)}
+    class_desp = classes[1:]  # The actual list of options given to the model. If the column names are informative enough, we can just use them.
+    class_to_idx = {class_name: idx for idx, class_name in enumerate(class_desp)}
 
-    EXP_NAME = f"{dataset_name}_{num_shot_per_class*len(classes)}shot_{model}_{num_qns_per_round}"
-    cal_metrics(EXP_NAME, test_df, classes, class_desp)
+    EXP_NAME = f"{dataset_name}_{num_shot_per_class*len(class_desp)}shot_{model}_{num_qns_per_round}"
+    cal_metrics(EXP_NAME, test_df, class_desp, class_desp)

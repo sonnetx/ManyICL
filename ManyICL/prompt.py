@@ -57,8 +57,9 @@ def work(
     file_suffix[str]: suffix for image filenames if not included in indexes of test_df and demo_df. e.g. ".png"
     """
 
-    class_to_idx = {class_name: idx for idx, class_name in enumerate(classes)}
-    EXP_NAME = f"{dataset_name}_{num_shot_per_class*len(classes)}shot_{model}_{num_qns_per_round}"
+    # class_to_idx = {class_name: idx for idx, class_name in enumerate(classes)}
+    class_to_idx = {class_name: idx for idx, class_name in enumerate(class_desp)}
+    EXP_NAME = f"{dataset_name}_{num_shot_per_class*len(class_desp)}shot_{model}_{num_qns_per_round}"
 
     if model.startswith("gpt"):
         api = GPT4VAPI(model=model, detail=detail)
@@ -74,10 +75,13 @@ def work(
         for j in demo_df[demo_df[class_name] == 1].itertuples():
             if num_cases_class == num_shot_per_class:
                 break
-            demo_examples.append((j.Index, class_desp[class_to_idx[class_name]]))
+            # demo_examples.append((j.Index, class_desp[class_to_idx[class_name]]))
+            file_name = j.DDI_file
+            demo_examples.append((file_name, j.Index, class_desp[class_to_idx[class_name]]))
             num_cases_class += 1
-    # print(len(demo_examples), num_shot_per_class * len(classes))
-    assert len(demo_examples) == num_shot_per_class * len(classes)
+    print(demo_examples)
+    print(len(demo_examples), num_shot_per_class, len(class_desp))
+    assert len(demo_examples) == num_shot_per_class * len(class_desp)
 
     # Load existing results
     if os.path.isfile(f"{EXP_NAME}.pkl"):
