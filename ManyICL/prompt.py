@@ -11,6 +11,7 @@ def save_results_to_csv(results, csv_filename):
     """
     Save results dictionary to a CSV file.
     """
+    # print(results)
     with open(csv_filename, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(['Question ID', 'Response'])
@@ -29,14 +30,14 @@ def save_prompts_to_csv(prompts, csv_filename):
             if qns_id != 'token_usage':
                 writer.writerow([qns_id, response])
 
-def pickle_to_csv(pickle_filename, csv_filename):
-    """
-    Parse an existing pickle file and save its contents to a CSV file.
-    """
-    with open(pickle_filename, 'rb') as f:
-        results = pickle.load(f)
+# def pickle_to_csv(pickle_filename, csv_filename):
+#     """
+#     Parse an existing pickle file and save its contents to a CSV file.
+#     """
+#     with open(pickle_filename, 'rb') as f:
+#         results = pickle.load(f)
     
-    save_results_to_csv(results, csv_filename)
+#     save_results_to_csv(results, csv_filename)
 
 def work(
     model,
@@ -194,6 +195,6 @@ def work(
     csv_filename = f"{EXP_NAME}.csv"
     save_results_to_csv(results, csv_filename)
     prompts_csv_filename = f"{EXP_NAME}.csv"
-    save_results_to_csv(prompts_list, prompts_csv_filename)
+    save_prompts_to_csv(prompts_list, prompts_csv_filename)
 
     print(f"Results saved to {pickle_filename} and {csv_filename}")
